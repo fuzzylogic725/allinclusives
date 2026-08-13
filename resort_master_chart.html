@@ -1,0 +1,715 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>All-Inclusive Resort Master Rankings</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; font-size: 13px; background: #0f0f0f; color: #e8e8e8; padding: 24px; }
+  h1 { font-size: 18px; font-weight: 500; margin-bottom: 4px; color: #fff; }
+  .subtitle { font-size: 12px; color: #666; margin-bottom: 20px; }
+
+  .controls { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 16px; }
+  select { background: #1a1a1a; border: 0.5px solid #333; color: #e8e8e8; padding: 5px 10px; border-radius: 5px; font-size: 12px; }
+
+  .table-wrap { overflow-x: auto; border-radius: 10px; border: 0.5px solid #222; }
+  table { width: 100%; border-collapse: collapse; min-width: 900px; }
+  thead th { background: #161616; color: #888; font-size: 10px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.06em; padding: 10px 12px; text-align: left; border-bottom: 1px solid #222; white-space: nowrap; cursor: pointer; user-select: none; }
+  thead th:hover { color: #e8e8e8; }
+  tbody tr { border-bottom: 0.5px solid #1e1e1e; transition: background 0.1s; }
+  tbody tr:hover { background: #161616; }
+  tbody td { padding: 9px 12px; vertical-align: middle; }
+
+  .num { color: #555; font-size: 12px; font-weight: 500; width: 36px; }
+  .resort-name { font-weight: 500; font-size: 13px; color: #e8e8e8; }
+  .visited { font-size: 10px; color: #5edd98; margin-left: 6px; }
+
+  .stars { display: flex; gap: 2px; align-items: center; }
+  .star { width: 12px; height: 12px; border-radius: 2px; }
+  .star.full { background: #e4a84a; }
+  .star.half { background: linear-gradient(90deg, #e4a84a 50%, #2a2008 50%); }
+  .star.empty { background: #2a2008; border: 0.5px solid #3a3010; }
+  .star-num { font-size: 11px; color: #888; margin-left: 5px; }
+
+  .country { display: inline-block; padding: 2px 7px; border-radius: 4px; font-size: 11px; font-weight: 500; white-space: nowrap; }
+  .c-mx       { background: #1a2a1a; color: #5edd98; }
+  .c-dr       { background: #1e2010; color: #9edd6a; }
+  .c-st-lucia { background: #0d1e2a; color: #6aadee; }
+  .c-grenada  { background: #1a0d2a; color: #b08de8; }
+  .c-antigua  { background: #2a1a0d; color: #e8a86a; }
+  .c-aruba    { background: #2a1a1a; color: #ee8a7a; }
+  .c-curacao  { background: #0d2a2a; color: #6aeedd; }
+  .c-barbados { background: #2a0d1a; color: #ee6aad; }
+
+  .type { display: inline-block; padding: 2px 7px; border-radius: 4px; font-size: 11px; white-space: nowrap; }
+  .t-adults { background: #1a1a2a; color: #9a9aee; border: 0.5px solid #2a2a4a; }
+  .t-mixed  { background: #2a1a0a; color: #e8a84a; border: 0.5px solid #4a3a1a; }
+  .t-family { background: #0a2a1a; color: #4ae89a; border: 0.5px solid #1a4a2a; }
+
+  .price { font-size: 12px; font-weight: 500; color: #e8e8e8; white-space: nowrap; }
+  .price-na { font-size: 11px; color: #7a3a3a; font-style: italic; }
+  .price-empty { color: #444; font-size: 11px; font-style: italic; }
+
+  .tier-row td { background: #0d0d0d; padding: 6px 12px; font-size: 10px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.08em; color: #555; border-bottom: 0.5px solid #1e1e1e; }
+
+  .legend { display: flex; gap: 14px; flex-wrap: wrap; font-size: 11px; color: #666; margin-top: 14px; }
+  .legend-item { display: flex; align-items: center; gap: 5px; }
+  .legend-dot { width: 10px; height: 10px; border-radius: 2px; flex-shrink: 0; }
+  .count { font-size: 11px; color: #555; margin-bottom: 12px; }
+  .sort-hint { font-size: 11px; color: #444; margin-bottom: 8px; }
+
+
+
+/* ── PAGE TAB NAVIGATION ── */
+.page-tabs { display: flex; gap: 6px; margin-bottom: 20px; }
+.page-tab { padding: 8px 18px; border-radius: 7px; border: 0.5px solid #333; background: #1a1a1a; cursor: pointer; font-size: 13px; font-weight: 500; color: #888; transition: all 0.15s; }
+.page-tab.active { background: #e8e8e8; color: #0f0f0f; border-color: #e8e8e8; }
+.page-tab:hover:not(.active) { border-color: #555; color: #e8e8e8; }
+.page { display: none; }
+.page.active { display: block; }
+
+/* ── FINAL CONTENDERS TAB ── */
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; font-size: 13px; background: #0f0f0f; color: #e8e8e8; padding: 24px; }
+
+h1 { font-size: 20px; font-weight: 500; color: #fff; margin-bottom: 4px; }
+.subtitle { font-size: 12px; color: #555; margin-bottom: 24px; }
+
+/* RANK CARDS */
+.cards { display: flex; flex-direction: column; gap: 12px; }
+.card { background: #161616; border: 0.5px solid #222; border-radius: 12px; overflow: hidden; display: grid; grid-template-columns: 64px 1fr auto; }
+.card.winner { border: 1.5px solid #e4a84a; }
+
+.rank-col { display: flex; align-items: center; justify-content: center; padding: 20px 0; border-right: 0.5px solid #222; }
+.rank-num { font-size: 28px; font-weight: 600; }
+.r1 { color: #f5c842; }
+.r2 { color: #c8c8c8; }
+.r3 { color: #cd7f32; }
+.r4 { color: #6aadee; }
+.r5 { color: #9a9aee; }
+
+.body-col { padding: 16px 18px; }
+.resort-name { font-size: 16px; font-weight: 500; color: #fff; margin-bottom: 2px; }
+.resort-meta { font-size: 11px; color: #555; margin-bottom: 12px; }
+
+.tags { display: flex; flex-wrap: wrap; gap: 5px; margin-bottom: 12px; }
+.tag { padding: 2px 8px; border-radius: 4px; font-size: 11px; font-weight: 500; white-space: nowrap; }
+.tag-adults  { background: #1a1a2a; color: #9a9aee; border: 0.5px solid #2a2a4a; }
+.tag-fhr     { background: #1a3a2a; color: #5edd98; border: 0.5px solid #2d6b4a; }
+.tag-thc     { background: #1e2d45; color: #6aadee; border: 0.5px solid #2a4a78; }
+.tag-sarg1   { background: #1a3a2a; color: #5edd98; border: 0.5px solid #2d6b4a; }
+.tag-sarg3   { background: #2a2008; color: #e4b94a; border: 0.5px solid #5a4010; }
+.tag-sarg4   { background: #2a1808; color: #ee8a5a; border: 0.5px solid #7a3a10; }
+.tag-hyatt   { background: #1a1f2a; color: #7aadee; border: 0.5px solid #2a3a5a; }
+.tag-hilton  { background: #1a1f2a; color: #5aaabb; border: 0.5px solid #2a4a55; }
+.tag-marriott{ background: #1f1a2a; color: #9a7aee; border: 0.5px solid #3a2a5a; }
+
+.scores { display: grid; grid-template-columns: repeat(4, 1fr); gap: 6px; margin-bottom: 12px; }
+.score-box { background: #1a1a1a; border-radius: 6px; padding: 7px 9px; text-align: center; }
+.score-val { font-size: 16px; font-weight: 500; color: #e8e8e8; }
+.score-lbl { font-size: 9px; color: #555; text-transform: uppercase; letter-spacing: 0.05em; margin-top: 1px; }
+
+.verdict { font-size: 12px; color: #888; line-height: 1.6; border-left: 2px solid #333; padding-left: 10px; }
+.verdict.gold { border-left-color: #e4a84a; }
+.verdict.green { border-left-color: #5edd98; }
+.verdict.blue { border-left-color: #6aadee; }
+.verdict.silver { border-left-color: #c8c8c8; }
+.verdict.purple { border-left-color: #9a9aee; }
+
+.price-col { display: flex; flex-direction: column; align-items: flex-end; justify-content: center; padding: 16px 18px; border-left: 0.5px solid #222; min-width: 120px; }
+.price-total { font-size: 22px; font-weight: 500; color: #fff; }
+.price-pn { font-size: 11px; color: #555; margin-top: 2px; }
+.price-label { font-size: 10px; color: #444; text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 4px; }
+.visit-btn { display: inline-block; margin-top: 10px; color: #6aadee; font-size: 11px; text-decoration: none; border: 0.5px solid #2a4a78; padding: 3px 9px; border-radius: 4px; white-space: nowrap; }
+.visit-btn:hover { background: #1e2d45; }
+
+/* COMPARISON TABLE */
+.comp-wrap { margin-top: 24px; }
+.comp-title { font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.07em; color: #555; margin-bottom: 10px; }
+table.comp { width: 100%; border-collapse: collapse; }
+table.comp th { background: #161616; color: #555; font-size: 10px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em; padding: 8px 12px; text-align: left; border-bottom: 1px solid #222; }
+table.comp td { padding: 9px 12px; border-bottom: 0.5px solid #1e1e1e; font-size: 12px; vertical-align: middle; }
+table.comp tr:hover td { background: #161616; }
+.bar-wrap { display: flex; align-items: center; gap: 6px; }
+.bar-bg { width: 80px; background: #222; border-radius: 2px; height: 5px; overflow: hidden; flex-shrink: 0; }
+.bar-fill { height: 100%; border-radius: 2px; }
+.bar-n { font-size: 11px; color: #555; }
+.check { color: #5edd98; font-weight: 600; }
+.cross { color: #555; }
+.warn-icon { color: #e4a84a; }
+</style>
+</head>
+<body>
+
+<div class="page-tabs">
+  <button class="page-tab active" onclick="switchPage('contenders', this)">🏆 Final Contenders</button>
+  <button class="page-tab" onclick="switchPage('master', this)">📊 Master Rankings</button>
+</div>
+
+<div id="page-contenders" class="page active">
+<h1>Final Contenders</h1>
+<div class="subtitle">Oct 24–28 · 5 resorts shortlisted · Ranked by overall criteria</div>
+
+<h1>Final Contenders</h1>
+<div class="subtitle">Oct 24–28 · 5 resorts · All adults-only · Ranked by overall criteria</div>
+
+<div class="cards">
+
+  <!-- #1 HYATT ZILARA -->
+  <div class="card winner">
+    <div class="rank-col"><span class="rank-num r1">1</span></div>
+    <div class="body-col">
+      <div class="resort-name">Hyatt Zilara Cap Cana</div>
+      <div class="resort-meta">Dominican Republic · Cap Cana · Juanillo Beach</div>
+      <div class="tags">
+        <span class="tag tag-adults">Adults Only</span>
+        <span class="tag tag-thc">Amex THC 🔵</span>
+        <span class="tag tag-hyatt">World of Hyatt</span>
+        <span class="tag tag-sarg1">🌿 Sargassum: Minimal</span>
+      </div>
+      <div class="scores">
+        <div class="score-box"><div class="score-val">4.5</div><div class="score-lbl">Food</div></div>
+        <div class="score-box"><div class="score-val">4.5</div><div class="score-lbl">Beach</div></div>
+        <div class="score-box"><div class="score-val">4.9</div><div class="score-lbl">Group fit</div></div>
+        <div class="score-box"><div class="score-val">4.4</div><div class="score-lbl">Spa</div></div>
+      </div>
+      <div class="verdict gold">Best group fit of any property on this full list. 13+ restaurants via dual Zilara+Ziva access, the only speakeasy in the Caribbean (One Eyed Cat), Canapolis waterpark with lazy river, DR's first Himalayan salt spa lounge, and Cap Cana's seaweed-protected beach. Amex THC applies — $100 experience credit + room upgrade. Free 4th night offer active now through Nov 19 — effectively reduces net cost by $625+.</div>
+    </div>
+    <div class="price-col">
+      <div class="price-label">Oct 24–28 total</div>
+      <div class="price-total">$2,505</div>
+      <div class="price-pn">~$626/night</div>
+      <a class="visit-btn" href="https://www.hyatt.com/zilara/en-US/pujia-hyatt-zilara-cap-cana" target="_blank">Visit ↗</a>
+    </div>
+  </div>
+
+  <!-- #2 SANCTUARY CAP CANA -->
+  <div class="card">
+    <div class="rank-col"><span class="rank-num r2">2</span></div>
+    <div class="body-col">
+      <div class="resort-name">Sanctuary Cap Cana</div>
+      <div class="resort-meta">Dominican Republic · Cap Cana · Juanillo Beach · Marriott Luxury Collection</div>
+      <div class="tags">
+        <span class="tag tag-adults">Adults Only</span>
+        <span class="tag tag-marriott">Marriott Bonvoy</span>
+        <span class="tag tag-sarg1">🌿 Sargassum: Minimal</span>
+      </div>
+      <div class="scores">
+        <div class="score-box"><div class="score-val">4.5</div><div class="score-lbl">Food</div></div>
+        <div class="score-box"><div class="score-val">4.5</div><div class="score-lbl">Beach</div></div>
+        <div class="score-box"><div class="score-val">4.5</div><div class="score-lbl">Group fit</div></div>
+        <div class="score-box"><div class="score-val">4.3</div><div class="score-lbl">Spa</div></div>
+      </div>
+      <div class="verdict silver">Marriott Luxury Collection adults-only on the same Juanillo Beach as Zilara — stunning colonial Spanish castle architecture on the cliffside is unlike anything else in the DR. 5 restaurants including Blue Marlin raised on stilts over the sea, 6 pools, butler service on upper suite tiers, Marriott Bonvoy points. 324 suites — more intimate than Zilara's 375. The most architecturally dramatic property in Cap Cana. Cheapest of the group at $2,004.</div>
+    </div>
+    <div class="price-col">
+      <div class="price-label">Oct 24–28 total</div>
+      <div class="price-total">$2,004</div>
+      <div class="price-pn">~$501/night</div>
+      <a class="visit-btn" href="https://www.marriott.com/en-us/hotels/pujlc-sanctuary-cap-cana-a-luxury-collection-resort-dominican-republic-adult-all-inclusive/overview/" target="_blank">Visit ↗</a>
+    </div>
+  </div>
+
+  <!-- #3 ATELIER PLAYA MUJERES -->
+  <div class="card">
+    <div class="rank-col"><span class="rank-num r3">3</span></div>
+    <div class="body-col">
+      <div class="resort-name">Atelier Playa Mujeres</div>
+      <div class="resort-meta">Mexico · Playa Mujeres, Cancún · Caribbean-facing beach</div>
+      <div class="tags">
+        <span class="tag tag-adults">Adults Only (16+)</span>
+        <span class="tag tag-fhr">Amex FHR ⭐</span>
+        <span class="tag tag-sarg1">🌿 Sargassum: Minimal</span>
+      </div>
+      <div class="scores">
+        <div class="score-box"><div class="score-val">4.7</div><div class="score-lbl">Food</div></div>
+        <div class="score-box"><div class="score-val">4.0</div><div class="score-lbl">Beach</div></div>
+        <div class="score-box"><div class="score-val">4.0</div><div class="score-lbl">Group fit</div></div>
+        <div class="score-box"><div class="score-val">4.9</div><div class="score-lbl">Spa</div></div>
+      </div>
+      <div class="verdict gold">MICHELIN-recommended María Dolores restaurant with Chef Edgar Núñez, best cocktail program of any resort on this list, and Playa Mujeres' sheltered seaweed-free beach year-round. Amex FHR full stack — breakfast, $100 experience credit (best used at 38,750 sq ft NUUP Spa), room upgrade, 4PM checkout. 13 restaurants, 4 pools, 12 bars. Natural step-up from your Excellence Playa Mujeres experience — same beach corridor, meaningfully better food and bar. Note: 16+ not 18+.</div>
+    </div>
+    <div class="price-col">
+      <div class="price-label">Oct 24–28 total</div>
+      <div class="price-total">$2,799</div>
+      <div class="price-pn">~$700/night</div>
+      <a class="visit-btn" href="https://www.atelierplayamujeres.com" target="_blank">Visit ↗</a>
+    </div>
+  </div>
+
+  <!-- #4 SECRETS AKUMAL -->
+  <div class="card">
+    <div class="rank-col"><span class="rank-num r4">4</span></div>
+    <div class="body-col">
+      <div class="resort-name">Secrets Akumal Riviera Maya</div>
+      <div class="resort-meta">Mexico · Akumal · Riviera Maya · ~1hr south of CUN airport</div>
+      <div class="tags">
+        <span class="tag tag-adults">Adults Only</span>
+        <span class="tag tag-hyatt">World of Hyatt</span>
+        <span class="tag tag-sarg4">🌿 Sargassum: High (Oct)</span>
+      </div>
+      <div class="scores">
+        <div class="score-box"><div class="score-val">4.6</div><div class="score-lbl">Food</div></div>
+        <div class="score-box"><div class="score-val">4.5</div><div class="score-lbl">Beach</div></div>
+        <div class="score-box"><div class="score-val">4.0</div><div class="score-lbl">Group fit</div></div>
+        <div class="score-box"><div class="score-val">4.9</div><div class="score-lbl">Spa</div></div>
+      </div>
+      <div class="verdict blue">#1 hotel in the world — TripAdvisor 2025 Best of Best. 9 restaurants including 6 à la carte plus an on-site winery, 18,000 sq ft spa (largest of these five), sea turtle snorkeling directly from the beach, and AAA Five Diamond. The most decorated property on this shortlist by every accolade. Ranks #4 here solely due to October high sargassum risk in Riviera Maya and the longest airport transfer (~1hr). The automatic #1 for any Jan–Apr trip.</div>
+    </div>
+    <div class="price-col">
+      <div class="price-label">Oct 24–28 total</div>
+      <div class="price-total">$2,983</div>
+      <div class="price-pn">~$746/night</div>
+      <a class="visit-btn" href="https://www.hyattinclusivecollection.com/en/resorts-hotels/secrets/mexico/akumal-riviera-maya/" target="_blank">Visit ↗</a>
+    </div>
+  </div>
+
+  <!-- #5 ZEMI MICHES -->
+  <div class="card">
+    <div class="rank-col"><span class="rank-num r5">5</span></div>
+    <div class="body-col">
+      <div class="resort-name">Zemi Miches</div>
+      <div class="resort-meta">Dominican Republic · Miches, northeast coast · Curio by Hilton · ~90 min from PUJ</div>
+      <div class="tags">
+        <span class="tag tag-adults">Mixed (adults spaces)</span>
+        <span class="tag tag-hilton">Hilton Honors</span>
+        <span class="tag tag-sarg1">🌿 Sargassum: Zero</span>
+      </div>
+      <div class="scores">
+        <div class="score-box"><div class="score-val">4.4</div><div class="score-lbl">Food</div></div>
+        <div class="score-box"><div class="score-val">4.5</div><div class="score-lbl">Beach</div></div>
+        <div class="score-box"><div class="score-val">3.8</div><div class="score-lbl">Group fit</div></div>
+        <div class="score-box"><div class="score-val">4.0</div><div class="score-lbl">Spa</div></div>
+      </div>
+      <div class="verdict purple">The wildcard and the most unique destination of the five — Miches is the DR's untouched northeast coast, with confirmed zero sargassum year-round, Taino-inspired architecture, and chef-driven cuisine rated as the best food quality of any DR all-inclusive at this price point. Hilton Honors points via Curio Collection. Club Azuré tier adds a private rooftop infinity pool and dedicated service. The tradeoff: 90 minutes from PUJ, not formally 100% adults-only, and the least group nightlife energy. Best for a group that wants something genuinely different.</div>
+    </div>
+    <div class="price-col">
+      <div class="price-label">Oct 24–28 total</div>
+      <div class="price-total">$1,662</div>
+      <div class="price-pn">~$416/night</div>
+      <a class="visit-btn" href="https://www.hilton.com/en/hotels/pcuzmqq-zemi-miches-punta-cana-all-inclusive/" target="_blank">Visit ↗</a>
+    </div>
+  </div>
+
+</div>
+
+<!-- COMPARISON TABLE -->
+<div class="comp-wrap">
+  <div class="comp-title">Head-to-head comparison</div>
+  <table class="comp">
+    <thead>
+      <tr>
+        <th>Criteria</th>
+        <th>Zilara Cap Cana</th>
+        <th>Sanctuary Cap Cana</th>
+        <th>Atelier PM</th>
+        <th>Secrets Akumal</th>
+        <th>Zemi Miches</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td style="color:#555;font-size:11px">Oct 24–28 price</td>
+        <td><strong style="color:#e4a84a">$2,505</strong></td>
+        <td><strong style="color:#5edd98">$2,004</strong></td>
+        <td>$2,799</td>
+        <td>$2,983</td>
+        <td><strong style="color:#5edd98">$1,662</strong></td>
+      </tr>
+      <tr>
+        <td style="color:#555;font-size:11px">100% Adults Only</td>
+        <td><span class="warn-icon">⚠️ Ziva adj.</span></td>
+        <td><span class="check">✓ Yes</span></td>
+        <td><span class="warn-icon">⚠️ 16+</span></td>
+        <td><span class="check">✓ Yes</span></td>
+        <td><span class="cross">✗ Mixed</span></td>
+      </tr>
+      <tr>
+        <td style="color:#555;font-size:11px">Restaurants</td>
+        <td>13+ (Zilara + Ziva)</td>
+        <td>5 à la carte</td>
+        <td>13 + 2 cafés</td>
+        <td>9 incl. winery</td>
+        <td>4 restaurants</td>
+      </tr>
+      <tr>
+        <td style="color:#555;font-size:11px">Amex program</td>
+        <td><span style="color:#6aadee;font-weight:600">THC 🔵</span></td>
+        <td><span class="cross">None</span></td>
+        <td><span style="color:#5edd98;font-weight:600">FHR ⭐</span></td>
+        <td><span class="cross">None</span></td>
+        <td><span class="cross">None</span></td>
+      </tr>
+      <tr>
+        <td style="color:#555;font-size:11px">Sargassum risk (Oct)</td>
+        <td><span class="check">🌿 Minimal</span></td>
+        <td><span class="check">🌿 Minimal</span></td>
+        <td><span class="check">🌿 Minimal</span></td>
+        <td><span style="color:#ee8a5a">🔴 High</span></td>
+        <td><span class="check">🌿 Zero</span></td>
+      </tr>
+      <tr>
+        <td style="color:#555;font-size:11px">Loyalty points</td>
+        <td>World of Hyatt</td>
+        <td>Marriott Bonvoy</td>
+        <td>None</td>
+        <td>World of Hyatt</td>
+        <td>Hilton Honors</td>
+      </tr>
+      <tr>
+        <td style="color:#555;font-size:11px">Airport transfer</td>
+        <td>~45 min PUJ</td>
+        <td>~45 min PUJ</td>
+        <td>~40 min CUN</td>
+        <td>~60 min CUN</td>
+        <td>~90 min PUJ</td>
+      </tr>
+      <tr>
+        <td style="color:#555;font-size:11px">Unique factor</td>
+        <td>Speakeasy + waterpark</td>
+        <td>Castle architecture</td>
+        <td>MICHELIN dining</td>
+        <td>Sea turtles + #1 globally</td>
+        <td>Untouched coast</td>
+      </tr>
+      <tr>
+        <td style="color:#555;font-size:11px">Best for group</td>
+        <td><span class="check">✓ Highest rating</span></td>
+        <td><span class="check">✓ Intimate luxury</span></td>
+        <td><span class="check">✓ Food + cocktails</span></td>
+        <td><span class="warn-icon">⚠️ More couples-feel</span></td>
+        <td><span class="warn-icon">⚠️ Quieter vibe</span></td>
+      </tr>
+    </tbody>
+  </table>
+</div>
+
+<div style="margin-top:20px;background:#161616;border:0.5px solid #222;border-radius:8px;padding:13px 16px;font-size:12px;color:#666;line-height:1.7">
+  <strong style="color:#e8e8e8">Bottom line:</strong> Zilara at $2,505 is the group play — most dining, best nightlife, Amex THC, and the free 4th night offer brings effective cost down significantly. Sanctuary at $2,004 is the prestige value pick — cheapest of the five, same Cap Cana beach, stunning architecture, Marriott Bonvoy. Atelier at $2,799 is the food and cocktail pick with the strongest Amex benefits. Secrets Akumal is the best resort on paper but October sargassum risk is real. Zemi Miches is the wildcard — zero seaweed, unique destination, lowest price, and genuinely different from anything else on this list.
+</div>
+
+</div>
+
+<div id="page-master" class="page">
+<h1>All-Inclusive Resort Master Rankings</h1>
+<div class="subtitle">Ranked by food quality · beach · group fit · sargassum risk · overall experience &nbsp;|&nbsp; Oct 24–28 pricing where available</div>
+
+<div class="controls">
+  <select id="filterCountry" onchange="applyFilters()">
+    <option value="all">All countries</option>
+    <option value="Mexico">Mexico</option>
+    <option value="Dominican Republic">Dominican Republic</option>
+    <option value="St. Lucia">St. Lucia</option>
+    <option value="Antigua">Antigua</option>
+    <option value="Aruba">Aruba</option>
+    <option value="Curaçao">Curaçao</option>
+    <option value="Barbados">Barbados</option>
+  </select>
+  <select id="filterType" onchange="applyFilters()">
+    <option value="all">All types</option>
+    <option value="Adults Only">Adults Only</option>
+    <option value="Mixed">Mixed (allows children)</option>
+    <option value="Family">Family-oriented</option>
+  </select>
+  <select id="filterRating" onchange="applyFilters()">
+    <option value="0">All ratings</option>
+    <option value="4.5">4.5+ stars</option>
+    <option value="4">4+ stars</option>
+    <option value="3.5">3.5+ stars</option>
+  </select>
+  <select id="filterAvail" onchange="applyFilters()">
+    <option value="all">All availability</option>
+    <option value="priced">Has Oct 24–28 price</option>
+    <option value="avail">Available (no price yet)</option>
+  </select>
+  <select id="filterAmex" onchange="applyFilters()">
+    <option value="all">All Amex status</option>
+    <option value="FHR">FHR only</option>
+    <option value="THC">THC only</option>
+    <option value="ANY">FHR or THC</option>
+  </select>
+  <div style="display:flex;align-items:center;gap:6px">
+    <span style="font-size:12px;color:#888">$</span>
+    <input id="priceMin" type="number" placeholder="Min" min="0" step="100"
+      style="background:#1a1a1a;border:0.5px solid #333;color:#e8e8e8;padding:5px 8px;border-radius:5px;font-size:12px;width:90px;"
+      oninput="applyFilters()">
+    <span style="font-size:12px;color:#555">–</span>
+    <span style="font-size:12px;color:#888">$</span>
+    <input id="priceMax" type="number" placeholder="Max" min="0" step="100"
+      style="background:#1a1a1a;border:0.5px solid #333;color:#e8e8e8;padding:5px 8px;border-radius:5px;font-size:12px;width:90px;"
+      oninput="applyFilters()">
+    <button onclick="document.getElementById('priceMin').value='';document.getElementById('priceMax').value='';applyFilters();"
+      style="background:#1a1a1a;border:0.5px solid #333;color:#888;padding:5px 8px;border-radius:5px;font-size:11px;cursor:pointer;">✕</button>
+  </div>
+  <select id="filterSarg" onchange="applyFilters()">
+    <option value="0">All sargassum levels</option>
+    <option value="1">🟢 1 — Minimal only</option>
+    <option value="2">🟡 2 — Low or better</option>
+    <option value="3">🟠 3 — Moderate or better</option>
+    <option value="4">🔴 4 — High or better</option>
+    <option value="5">⛔ 5 — Show all incl. peak</option>
+  </select>
+</div>
+
+<div class="count" id="count"></div>
+<div class="sort-hint">Click any column header to sort ↑↓ &nbsp;·&nbsp; Airfare = round-trip economy average JFK/EWR for October, per person. Actual prices vary by date and availability.</div>
+
+<div class="table-wrap">
+<table id="mainTable">
+<thead>
+  <tr>
+    <th onclick="sortBy('rank')"># ↕</th>
+    <th onclick="sortBy('name')">Resort ↕</th>
+    <th onclick="sortBy('rating')">Rating ↕</th>
+    <th onclick="sortBy('country')">Country ↕</th>
+    <th onclick="sortBy('type')">Type ↕</th>
+    <th onclick="sortBy('priceSort')">Oct 24–28 Total ↕</th>
+    <th onclick="sortBy('airAvg')">Avg Airfare (Oct RT) ↕</th>
+    <th onclick="sortBy('deepRank')" style="min-width:180px;cursor:pointer;" title="Click to sort by recommendation rank">⭐ Deep Rank ↕</th>
+    <th style="min-width:300px">Notes & Highlights</th>
+    <th onclick="sortBy('sargRisk')" style="min-width:110px;cursor:pointer;" title="Click to sort by sargassum risk (Oct)">🌿 Sargassum (Oct) ↕</th>
+    <th onclick="sortBy('amexStatus')" style="min-width:120px;cursor:pointer;" title="Click to sort by Amex program">💳 Amex Status ↕</th>
+    <th>Website</th>
+  </tr>
+</thead>
+<tbody id="tbody"></tbody>
+</table>
+</div>
+
+<div class="legend">
+  <div class="legend-item"><span class="legend-dot" style="background:#1a2a1a;border:0.5px solid #5edd98"></span>Mexico</div>
+  <div class="legend-item"><span class="legend-dot" style="background:#1e2010;border:0.5px solid #9edd6a"></span>Dominican Republic</div>
+  <div class="legend-item"><span class="legend-dot" style="background:#0d1e2a;border:0.5px solid #6aadee"></span>St. Lucia</div>
+  <div class="legend-item"><span class="legend-dot" style="background:#2a1a0d;border:0.5px solid #e8a86a"></span>Antigua</div>
+  <div class="legend-item"><span class="legend-dot" style="background:#2a1a1a;border:0.5px solid #ee8a7a"></span>Aruba</div>
+  <div class="legend-item"><span class="legend-dot" style="background:#0d2a2a;border:0.5px solid #6aeedd"></span>Curaçao</div>
+  <div class="legend-item"><span class="legend-dot" style="background:#2a0d1a;border:0.5px solid #ee6aad"></span>Barbados</div>
+  <div class="legend-item" style="margin-left:8px"><span class="legend-dot" style="background:#1a1a2a;border:0.5px solid #9a9aee"></span>Adults Only</div>
+  <div class="legend-item"><span class="legend-dot" style="background:#2a1a0a;border:0.5px solid #e8a84a"></span>Mixed</div>
+  <div class="legend-item"><span class="legend-dot" style="background:#0a2a1a;border:0.5px solid #4ae89a"></span>Family</div>
+  <div class="legend-item" style="margin-left:8px"><span style="color:#7a3a3a;font-style:italic;font-size:11px">No avail.</span> = sold out / no availability Oct 24–28</div>
+</div>
+
+<script>
+const resorts = [
+  { rank:1, name:"Grand Velas Riviera Maya", rating:5.0, country:"Mexico", cc:"c-mx", type:"Mixed", tc:"t-mixed", priceDisplay:"No availability", priceSort:99998, visited:false, url:"https://www.grandvelas.com/riviera-maya/", airRoute:"JFK/EWR → CUN", airAvg:"~$450–$550", deepRank:1, deepNote:"Only Michelin-starred AI on Earth. Cocina de Autor + Forbes 5-Star cenote spa. No avail Oct 24-28.", blurb:"The only Michelin-starred all-inclusive on Earth. Cocina de Autor, Forbes 5-Star cenote spa, and three resort zones make this the undisputed #1 for food globally. No availability Oct 24-28." , sargRisk:4, amexStatus:"FHR", amexNote:"Full FHR benefits — breakfast, $100 credit, upgrade, 4PM checkout"},
+  { rank:2, name:"Hotel Xcaret Arte", rating:4.9, country:"Mexico", cc:"c-mx", type:"Adults Only", tc:"t-adults", priceDisplay:"$4,817", priceSort:4817, visited:false, url:"https://www.hotelxcaretarte.com/", airRoute:"JFK/EWR → CUN", airAvg:"~$450–$550", deepRank:2, deepNote:"3 Michelin stars included, no supplements. Le Chique relocated March 2026. 15 pools, Xcaret parks, cave spa.", blurb:"Three Michelin-starred restaurants included with no supplements — Le Chique (relocated March 2026), plus two more. 10 gastronomic experiences, 15 pools, cave spa with cenote-view suite, unlimited Xcaret park access, hidden speakeasy, eco-integrated river. 5 themed casas around Mexican art forms. From $559/night. Beach is rocky — pool resort first." , sargRisk:4, amexStatus:"THC", amexNote:"$100 experience credit + room upgrade on arrival"},
+  { rank:3, name:"Jade Mountain", rating:5.0, country:"St. Lucia", cc:"c-st-lucia", type:"Mixed", tc:"t-mixed", priceDisplay:"$6,300", priceSort:6300, visited:false, url:"https://www.jademountain.com", airRoute:"JFK/EWR → UVF", airAvg:"~$550–$700", deepRank:3, deepNote:"U.S. News #1 Caribbean resort. 29 suites each with private infinity pool facing the Pitons. ~5hrs from NY.", blurb:"U.S. News #1 Caribbean resort. 29 open-wall suites each with a private infinity pool facing the Pitons. The most dramatic resort setting in the hemisphere. Adults skew heavily. ~5hrs from NY." , sargRisk:1, amexStatus:"NONE", amexNote:"—"},
+  { rank:4, name:"Le Blanc Spa Resort Cancún", rating:5.0, country:"Mexico", cc:"c-mx", type:"Adults Only", tc:"t-adults", priceDisplay:"No availability", priceSort:99998, visited:false, url:"https://www.leblancsparesort.com", airRoute:"JFK/EWR → CUN", airAvg:"~$450–$550", deepRank:4, deepNote:"AAA Five Diamond since 2010, butler service, BlancSpa hydrotherapy. No avail Oct 24-28.", blurb:"AAA Five Diamond every year since 2010. Butler unpacks your luggage and draws your bath. BlancSpa hydrotherapy circuit. Six a la carte restaurants. Zero wristbands. No availability Oct 24-28." , sargRisk:2, amexStatus:"NONE", amexNote:"—"},
+  { rank:5, name:"Impression Moxché by Secrets", rating:4.9, country:"Mexico", cc:"c-mx", type:"Adults Only", tc:"t-adults", priceDisplay:"$3,566", priceSort:3566, visited:false, url:"https://www.hyattinclusivecollection.com/en/resorts-hotels/impression-by-secrets/mexico/moxche-playa-del-carmen/", airRoute:"JFK/EWR → CUN", airAvg:"~$450–$550", deepRank:5, deepNote:"14 restaurants, butler 7am-11pm, AAA Five Diamond. Amex FHR $200 credit + 15% off active.", blurb:"14 restaurants, butler 7am-11pm, 198 suites averaging 1000+ sq ft, AAA Five Diamond. Amex FHR with $200 credit + 15% off currently active." , sargRisk:4, amexStatus:"FHR", amexNote:"FHR — $200 property credit + 15% off (current offer)"},
+  { rank:6, name:"Hyatt Zilara Cap Cana", rating:4.8, country:"Dominican Republic", cc:"c-dr", type:"Adults Only", tc:"t-adults", priceDisplay:"$2,830", priceSort:2830, visited:false, url:"https://www.hyatt.com/zilara/en-US/pujia-hyatt-zilara-cap-cana", airRoute:"JFK/EWR → PUJ", airAvg:"~$400–$500", deepRank:6, deepNote:"Best group fit. 13+ restaurants, speakeasy, Canapolis waterpark. Amex THC free 4th night. Cap Cana.", blurb:"Best adults-only all-inclusive in the Dominican Republic. 13+ restaurants via Zilara+Ziva access, One Eyed Cat speakeasy (only one in the Caribbean), Canapolis waterpark, DR first Himalayan salt spa lounge. Amex THC — free 4th night active now. World of Hyatt points." , sargRisk:1, amexStatus:"THC", amexNote:"THC — $100 credit + upgrade + free 4th night offer active now"},
+  { rank:7, name:"Secrets Maroma Beach", rating:4.8, country:"Mexico", cc:"c-mx", type:"Adults Only", tc:"t-adults", priceDisplay:"$2,321", priceSort:2321, visited:false, url:"https://www.hyattinclusivecollection.com/en/resorts-hotels/secrets/mexico/maroma-beach-riviera-cancun/", airRoute:"JFK/EWR → CUN", airAvg:"~$450–$550", deepRank:26, deepNote:"World's best beach 4 years running. Ranks here Oct-only due to high sargassum. Automatic #1 Jan-Apr.", blurb:"World's best beach per Travel Channel four years running. 500-acre property, 8 restaurants, 100% adults-only. October high sargassum risk is the only knock. Automatic #1 for a Jan-Apr trip." , sargRisk:5, amexStatus:"NONE", amexNote:"World of Hyatt points — no Amex program"},
+  { rank:8, name:"Hammock Cove", rating:4.8, country:"Antigua", cc:"c-antigua", type:"Adults Only", tc:"t-adults", priceDisplay:"$10,800", priceSort:10800, visited:false, url:"https://www.hammockcove.com", airRoute:"JFK/EWR → ANU", airAvg:"~$450–$550", deepRank:8, deepNote:"Only 40 villas with private plunge pools. T+L and Conde Nast top boutique Caribbean AI. 3.5hrs from NY.", blurb:"Only 40 villas each with a private plunge pool. Conde Nast and T+L top-rated boutique Caribbean all-inclusive. 3.5hrs from NY. Zero sargassum year-round." , sargRisk:1, amexStatus:"NONE", amexNote:"—"},
+  { rank:9, name:"Sanctuary Cap Cana", rating:4.5, country:"Dominican Republic", cc:"c-dr", type:"Adults Only", tc:"t-adults", priceDisplay:"$2,520", priceSort:2520, visited:false, url:"https://www.marriott.com/en-us/hotels/pujlc-sanctuary-cap-cana-a-luxury-collection-resort-dominican-republic-adult-all-inclusive/overview/", airRoute:"JFK/EWR → PUJ", airAvg:"~$400–$500", deepRank:9, deepNote:"Marriott Luxury Collection, butler service, Cap Cana gated community. Colonial castle design on cliffside.", blurb:"Marriott Luxury Collection adults-only in Cap Cana gated community. 324 suites in stunning colonial Spanish castle design. 6 pools, 5 restaurants including Blue Marlin on stilts over the sea, personal butler service on upper suites. Marriott Bonvoy points. Same Juanillo Beach as Zilara." , sargRisk:1, amexStatus:"NONE", amexNote:"Marriott Luxury Collection — book via Amex Travel for points"},
+  { rank:10, name:"Secrets Akumal Riviera Maya", rating:4.7, country:"Mexico", cc:"c-mx", type:"Adults Only", tc:"t-adults", priceDisplay:"$2,843", priceSort:2843, visited:false, url:"https://www.hyattinclusivecollection.com/en/resorts-hotels/secrets/mexico/akumal-riviera-maya/", airRoute:"JFK/EWR → CUN", airAvg:"~$450–$550", deepRank:10, deepNote:"#1 hotel in world TripAdvisor 2025. Sea turtles, 18,000 sq ft spa, winery. Medium sargassum Oct.", blurb:"#1 hotel in the world — TripAdvisor 2025 Best of Best. Sea turtle snorkeling directly from beach. 18,000 sq ft spa — largest on this list. On-site winery. Most well-rounded property. Medium sargassum Oct. No Amex." , sargRisk:4, amexStatus:"NONE", amexNote:"World of Hyatt points — no Amex program"},
+  { rank:11, name:"Atelier Playa Mujeres", rating:4.7, country:"Mexico", cc:"c-mx", type:"Adults Only", tc:"t-adults", priceDisplay:"$2,894", priceSort:2894, visited:false, url:"https://www.atelierplayamujeres.com", airRoute:"JFK/EWR → CUN", airAvg:"~$450–$550", deepRank:11, deepNote:"MICHELIN-recommended, Amex FHR full stack, Playa Mujeres seaweed-free year-round. Best cocktails.", blurb:"MICHELIN-recommended Maria Dolores restaurant. Best cocktail program of any resort on the list. Playa Mujeres beach is seaweed-free year-round. Amex FHR — full stack (breakfast, $100 credit, upgrade, 4PM checkout). Natural step-up from Excellence Playa Mujeres." , sargRisk:1, amexStatus:"FHR", amexNote:"Full FHR — breakfast, $100 credit, upgrade, 4PM checkout"},
+  { rank:12, name:"Secrets Cap Cana", rating:4.7, country:"Dominican Republic", cc:"c-dr", type:"Adults Only", tc:"t-adults", priceDisplay:"$3,341", priceSort:3341, visited:false, url:"https://www.hyattinclusivecollection.com/en/resorts-hotels/secrets/dominican-republic/cap-cana/", airRoute:"JFK/EWR → PUJ", airAvg:"~$400–$500", deepRank:12, deepNote:"Best food in Secrets portfolio globally. 100% adults-only. Juanillo Beach. AAA Five Diamond.", blurb:"Best food quality of any Secrets property globally per reviewers. 100% adults-only. Same Juanillo Beach as Zilara. 10 dining options including 7 a la carte. AAA Five Diamond. Preferred Club pool faces the ocean." , sargRisk:1, amexStatus:"NONE", amexNote:"World of Hyatt points — no Amex program"},
+  { rank:13, name:"Zemi Miches (Curio by Hilton)", rating:4.4, country:"Dominican Republic", cc:"c-dr", type:"Mixed", tc:"t-mixed", priceDisplay:"$1,662", priceSort:1662, visited:false, url:"https://www.hilton.com/en/hotels/pcuzmqq-zemi-miches-punta-cana-all-inclusive/", airRoute:"JFK/EWR → PUJ", airAvg:"~$400–$500", deepRank:14, deepNote:"New quiet luxury Miches. Zero sargassum year-round. Chef-driven cuisine. Hilton Honors points. 90 min from PUJ.", blurb:"New quiet luxury all-inclusive on Playa Esmeralda in Miches — zero sargassum year-round confirmed. Chef-driven cuisine rated best AI food quality in DR at this price. 16 beachfront bungalows, Hilton Honors points via Curio Collection. Club Azure adds private rooftop infinity pool. 90 min from PUJ — a different world from Punta Cana." , sargRisk:1, amexStatus:"NONE", amexNote:"Hilton Honors points — no Amex program"},
+  { rank:14, name:"Secrets Baby Beach Aruba", rating:4.6, country:"Aruba", cc:"c-aruba", type:"Adults Only", tc:"t-adults", priceDisplay:"$3,930", priceSort:3930, visited:false, url:"https://www.hyattinclusivecollection.com/en/resorts-hotels/secrets/aruba/baby-beach/", airRoute:"JFK/EWR → AUA", airAvg:"~$450–$550", deepRank:15, deepNote:"Zero sargassum, Hyatt points, newest build 2024. Baby Beach stunning sheltered bay. ~4.5hrs from NY.", blurb:"Newest adults-only all-inclusive in Aruba on Baby Beach — one of the most stunning sheltered bays in the Southern Caribbean. Zero sargassum year-round. World of Hyatt points eligible. Ground-up build 2024. ~4.5hrs from NY." , sargRisk:1, amexStatus:"NONE", amexNote:"World of Hyatt points — no Amex program"},
+  { rank:15, name:"Sandals Royal Curaçao", rating:4.6, country:"Curaçao", cc:"c-curacao", type:"Adults Only", tc:"t-adults", priceDisplay:"$3,675", priceSort:3675, visited:false, url:"https://www.sandals.com/royal-curacao/", airRoute:"JFK/EWR → CUR", airAvg:"~$500–$650", deepRank:25, deepNote:"Butler service every room, 8 restaurants, zero sargassum. UNESCO Willemstad walkable. Couples-skewed.", blurb:"Butler service every room, 8 restaurants, Caribbean-facing beach, zero sargassum year-round. Newest elevated Sandals (2022). Adults-only. UNESCO Willemstad walkable. Couples-skewed brand." , sargRisk:1, amexStatus:"NONE", amexNote:"—"},
+  { rank:16, name:"Sandals Royal Barbados", rating:4.5, country:"Barbados", cc:"c-barbados", type:"Adults Only", tc:"t-adults", priceDisplay:"$3,456", priceSort:3456, visited:false, url:"https://www.sandals.com/royal-barbados/", airRoute:"JFK/EWR → BGI", airAvg:"~$450–$550", deepRank:16, deepNote:"Rolls Royce airport pickup. St. Lawrence Gap dining/nightlife walkable. Best Sandals for food and culture.", blurb:"Airport pickup in a Rolls Royce. All-suite on St. Lawrence Gap — Barbados best dining and nightlife strip walkable. Best Sandals property for food and island culture. Adults-only. ~4hrs from NY. Caribbean-facing — low sargassum." , sargRisk:1, amexStatus:"NONE", amexNote:"—"},
+  { rank:17, name:"Finest Punta Cana", rating:4.3, country:"Dominican Republic", cc:"c-dr", type:"Mixed", tc:"t-mixed", priceDisplay:"$1,442", priceSort:1442, visited:true, url:"https://www.finestresorts.com/punta-cana/finest-punta-cana/", airRoute:"JFK/EWR → PUJ", airAvg:"~$400–$500", deepRank:24, deepNote:"Your visited property. 16 restaurants, Excellence Club adults section + family waterpark zone.", blurb:"Your visited property. 16 restaurants across the complex, Excellence Club adults-only section with private pools and beach, plus family waterpark zone. Dual-zone model gives group flexibility. Capped by service inconsistency and beach trailing Cap Cana and Playa Mujeres." , sargRisk:3, amexStatus:"NONE", amexNote:"—"},
+  { rank:18, name:"Hyatt Ziva Cap Cana", rating:4.5, country:"Dominican Republic", cc:"c-dr", type:"Mixed", tc:"t-mixed", priceDisplay:"$2,505", priceSort:2505, visited:false, url:"https://www.hyatt.com/ziva/en-US/pujia-hyatt-ziva-cap-cana", airRoute:"JFK/EWR → PUJ", airAvg:"~$400–$500", deepRank:23, deepNote:"Best mixed/family Cap Cana. Same Juanillo Beach as Zilara, Canapolis waterpark. World of Hyatt points.", blurb:"Best mixed/family all-inclusive in Cap Cana. Same Juanillo Beach and dual-resort access as Zilara. Canapolis waterpark, strong kids and teens clubs. World of Hyatt points eligible." , sargRisk:1, amexStatus:"THC", amexNote:"$100 experience credit + room upgrade on arrival"},
+  { rank:19, name:"UNICO 20°87° Riviera Maya", rating:4.4, country:"Mexico", cc:"c-mx", type:"Adults Only", tc:"t-adults", priceDisplay:"$2,254", priceSort:2254, visited:false, url:"https://www.unicohotelrivieramaya.com/", airRoute:"JFK/EWR → CUN", airAvg:"~$450–$550", deepRank:18, deepNote:"Chef-in-Residence program, Local Host every room, AAA Five Diamond. Most culturally immersive AI.", blurb:"Chef-in-Residence program with rotating celebrity Mexican chefs. Local Host (personal concierge) for every guest. AAA Five Diamond. Most culturally immersive all-inclusive on the full list. $2,254 makes it cheapest of the premium Mexico tier." , sargRisk:4, amexStatus:"FHR", amexNote:"Full FHR benefits — breakfast, $100 credit, upgrade, 4PM checkout"},
+  { rank:20, name:"Excellence El Carmen", rating:4.4, country:"Dominican Republic", cc:"c-dr", type:"Adults Only", tc:"t-adults", priceDisplay:"$1,523", priceSort:1523, visited:false, url:"https://www.excellenceresorts.com/punta-cana/excellence-carmen-punta-cana/", airRoute:"JFK/EWR → PUJ", airAvg:"~$400–$500", deepRank:22, deepNote:"Forbes best adults-only Punta Cana. 23 pools, 11 restaurants, swim-up + free spa. Best DR value.", blurb:"Forbes best adults-only AI in Punta Cana. 23 pools (highest on list), 11 a la carte restaurants. Excellence Club swim-up rooms include free spa treatment per person. At $1,523 saves group $1,300+ vs Cap Cana options. Uvero Alto — 47 min airport transfer." , sargRisk:3, amexStatus:"NONE", amexNote:"—"},
+  { rank:21, name:"Excellence Playa Mujeres", rating:4.4, country:"Mexico", cc:"c-mx", type:"Adults Only", tc:"t-adults", priceDisplay:"$2,189", priceSort:2189, visited:true, url:"https://www.excellenceresorts.com/mexico/excellence-playa-mujeres/", airRoute:"JFK/EWR → CUN", airAvg:"~$450–$550", deepRank:28, deepNote:"Your strongest existing stay — personal baseline. 11 restaurants, Playa Mujeres seaweed-free year-round.", blurb:"Your strongest existing stay and personal baseline. 11 restaurants, Playa Mujeres seaweed-free year-round, top-shelf spirits. Legitimate global top-20 property. Every property above this is a step up from your EPM experience." , sargRisk:1, amexStatus:"NONE", amexNote:"—"},
+  { rank:22, name:"Sandals Grande St. Lucian", rating:4.3, country:"St. Lucia", cc:"c-st-lucia", type:"Adults Only", tc:"t-adults", priceDisplay:"$3,525", priceSort:3525, visited:false, url:"https://www.sandals.com/grande-st-lucian/", airRoute:"JFK/EWR → UVF", airAvg:"~$550–$700", deepRank:27, deepNote:"Scenic peninsula, water on both sides. 11 restaurants including overwater dining. ~5hrs from NY.", blurb:"Narrow peninsula with water on both sides. 11 restaurants including overwater dining. Butler service on upper tiers. Adults-only. Pairs perfectly with a Jade Mountain stay. ~5hrs from NY." , sargRisk:1, amexStatus:"NONE", amexNote:"—"},
+  { rank:23, name:"BodyHoliday Saint Lucia", rating:4.3, country:"St. Lucia", cc:"c-st-lucia", type:"Adults Only", tc:"t-adults", priceDisplay:"$3,625", priceSort:3625, visited:false, url:"https://www.thebodyholiday.com", airRoute:"JFK/EWR → UVF", airAvg:"~$550–$700", deepRank:17, deepNote:"Daily spa treatment included every single day. Best wellness AI in Caribbean. 100% adults. ~5hrs from NY.", blurb:"One complimentary spa treatment included every single day of your stay — the strongest wellness program of any all-inclusive in the Caribbean. Excellent health-forward food. 100% adults. ~5hrs from NY." , sargRisk:1, amexStatus:"NONE", amexNote:"—"},
+  { rank:24, name:"Zoetry Agua Punta Cana", rating:4.3, country:"Dominican Republic", cc:"c-dr", type:"Mixed", tc:"t-mixed", priceDisplay:"$2,598", priceSort:2598, visited:false, url:"https://www.hyattinclusivecollection.com/en/resorts-hotels/zoetry/dominican-republic/agua-punta-cana/", airRoute:"JFK/EWR → PUJ", airAvg:"~$400–$500", deepRank:20, deepNote:"Boutique 96-suite eco-resort on low-seaweed Playa Blanca cove. Forbes top boutique. World of Hyatt points.", blurb:"Forbes top boutique AI in Punta Cana — only 96 suites on low-seaweed Playa Blanca cove. Treehouse-style palapa buildings, lush gardens, 4 restaurants, peaceful atmosphere. Recently Hyatt-acquired — World of Hyatt points now eligible. Families allowed but skews heavily adult." , sargRisk:2, amexStatus:"THC", amexNote:"$100 experience credit + room upgrade on arrival"},
+  { rank:25, name:"Melia Punta Cana Beach Adults Only", rating:4.3, country:"Dominican Republic", cc:"c-dr", type:"Adults Only", tc:"t-adults", priceDisplay:"$1,011", priceSort:1011, visited:false, url:"https://www.melia.com/en/hotels/dominican-republic/punta-cana/melia-punta-cana-beach/index.htm", airRoute:"JFK/EWR → PUJ", airAvg:"~$400–$500", deepRank:21, deepNote:"Forbes top spa/wellness DR. 9 restaurants, Bavaro Beach. Exceptional repeat-guest loyalty.", blurb:"Forbes top spa and wellness all-inclusive in Punta Cana. 9 restaurants, dedicated wellness programming, strong repeat-guest rate. The Level adults-only section adds premium upgrade tier with enhanced service. Bavaro Beach." , sargRisk:3, amexStatus:"NONE", amexNote:"—"},
+  { rank:26, name:"Live Aqua Beach Resort Punta Cana", rating:4.3, country:"Dominican Republic", cc:"c-dr", type:"Adults Only", tc:"t-adults", priceDisplay:"$2,216", priceSort:2216, visited:false, url:"https://www.aquapuntacana.com/", airRoute:"JFK/EWR → PUJ", airAvg:"~$400–$500", deepRank:19, deepNote:"World Spa Award winner, 97,000 sq ft pools, 8 restaurants. 9.0/10 guest score. Underrated DR adults-only.", blurb:"9.0/10 guest score and World Spa Awards Best Spa Brand in the World. 97,000 sq ft of pools including infinity pool, 8 restaurants across Italian/Asian/French/Mediterranean/Mexican/Dominican cuisines. Aqua Gold VIP tier offers butler-level personalized service. Uvero Alto — moderate sargassum risk October." , sargRisk:3, amexStatus:"NONE", amexNote:"—"},
+  { rank:27, name:"Excellence Punta Cana", rating:4.2, country:"Dominican Republic", cc:"c-dr", type:"Adults Only", tc:"t-adults", priceDisplay:"$1,437", priceSort:1437, visited:false, url:"https://www.excellenceresorts.com/punta-cana/excellence-punta-cana/", airRoute:"JFK/EWR → PUJ", airAvg:"~$400–$500", deepRank:33, deepNote:"Lobster included in AI (rare). Good value — El Carmen is better for just $86 more.", blurb:"Lobster included in the all-inclusive — genuinely rare. 11 restaurants, Miilé Spa with hydrotherapy, free horseback riding and SCUBA intro. El Carmen is the better Excellence DR property for just $86 more." , sargRisk:3, amexStatus:"NONE", amexNote:"—"},
+  { rank:28, name:"Royalton Antigua", rating:4.1, country:"Antigua", cc:"c-antigua", type:"Mixed", tc:"t-mixed", priceDisplay:"$1,924", priceSort:1924, visited:false, url:"https://www.royaltonresorts.com/royalton-antigua", airRoute:"JFK/EWR → ANU", airAvg:"~$450–$550", deepRank:34, deepNote:"Autograph Collection Marriott Bonvoy. Five Islands Village. ~3.5hrs from NY. Low sargassum.", blurb:"Autograph Collection (Marriott Bonvoy) on Five Islands Village — one of Antiguas most scenic bays. Adults-only wing, strong group energy, Bonvoy points. ~3.5hrs from NY. Caribbean-facing — low sargassum." , sargRisk:1, amexStatus:"NONE", amexNote:"Marriott Bonvoy (Autograph Collection) — no Amex program"},
+  { rank:29, name:"Moon Palace Cancún", rating:4.1, country:"Mexico", cc:"c-mx", type:"Family", tc:"t-family", priceDisplay:"No availability", priceSort:99998, visited:false, url:"https://www.palaceresorts.com/en/moon-palace-cancun", airRoute:"JFK/EWR → CUN", airAvg:"~$450–$550", deepRank:40, deepNote:"Best family AI complex Mexico. Bowling, cinema, golf, lazy river, 14 restaurants. No avail Oct 24-28.", blurb:"One of the largest AI complexes in Mexico. Bowling alley, cinema, golf course, lazy river, 14 restaurants all included. Best family AI in Mexico — scale means it can feel impersonal." , sargRisk:2, amexStatus:"NONE", amexNote:"—"},
+  { rank:30, name:"Iberostar Selection Cancún", rating:4.0, country:"Mexico", cc:"c-mx", type:"Family", tc:"t-family", priceDisplay:"$1,286", priceSort:1286, visited:false, url:"https://www.iberostar.com/en/hotels/cancun/iberostar-selection-cancun/", airRoute:"JFK/EWR → CUN", airAvg:"~$450–$550", deepRank:41, deepNote:"Best amenity count under $300/night. 10 pools, FIFA field, TripAdvisor Travelers Choice 2026.", blurb:"Best amenity count under $300/night. 10 pools, FIFA soccer field, TripAdvisor Travelers Choice 2026. Five-star amenity count at three-star pricing." , sargRisk:2, amexStatus:"NONE", amexNote:"—"},
+  { rank:31, name:"Hyatt Ziva Cancún", rating:4.0, country:"Mexico", cc:"c-mx", type:"Mixed", tc:"t-mixed", priceDisplay:"$2,325", priceSort:2325, visited:false, url:"https://www.hyatt.com/ziva/en-US/cunzc-hyatt-ziva-cancun", airRoute:"JFK/EWR → CUN", airAvg:"~$450–$550", deepRank:38, deepNote:"Six restaurants, top-shelf spirits, ocean on 3 sides promontory. Hyatt points.", blurb:"Six restaurants, unlimited top-shelf spirits, strong kids club, ocean on three sides. Slightly higher-rated than Iberostar by professional critics. World of Hyatt points eligible." , sargRisk:2, amexStatus:"NONE", amexNote:"World of Hyatt points — no Amex program"},
+  { rank:32, name:"JOIA Bavaro by Iberostar", rating:4.2, country:"Dominican Republic", cc:"c-dr", type:"Adults Only", tc:"t-adults", priceDisplay:"No availability", priceSort:99998, visited:true, url:"https://www.iberostar.com/en/hotels/punta-cana/iberostar-grand-bavaro/", airRoute:"JFK/EWR → PUJ", airAvg:"~$400–$500", deepRank:30, deepNote:"Your visited property x2. 20 restaurants, golf, sailboat bar. Food inconsistency is the weak spot.", blurb:"Your visited property (twice). 20 restaurants via sister resort access, golf, Greco-Roman architecture, sailboat bar on the lake. Strong French restaurant and steakhouse. Food inconsistency and wine quality are the weak spots." , sargRisk:3, amexStatus:"NONE", amexNote:"—"},
+  { rank:33, name:"Majestic Elegance Punta Cana", rating:3.8, country:"Dominican Republic", cc:"c-dr", type:"Adults Only", tc:"t-adults", priceDisplay:"$1,120", priceSort:1120, visited:false, url:"https://www.majestic-resorts.com/en/dominican-republic/majestic-elegance-punta-cana/", airRoute:"JFK/EWR → PUJ", airAvg:"~$400–$500", deepRank:37, deepNote:"Best beach-per-dollar DR on Bavaro Beach. Nightclub + casino. Weakest food on the full list.", blurb:"Best beach-per-dollar in the Dominican Republic on classic Bavaro Beach. Three beach bars, nightclub, casino, and non-motorized water sports all included. Food quality is the weakest of any property here." , sargRisk:3, amexStatus:"NONE", amexNote:"—"},
+  { rank:34, name:"Breathless Punta Cana", rating:4.2, country:"Dominican Republic", cc:"c-dr", type:"Adults Only", tc:"t-adults", priceDisplay:"$1,338", priceSort:1338, visited:false, url:"https://www.hyattinclusivecollection.com/en/resorts-hotels/breathless/dominican-republic/punta-cana/", airRoute:"JFK/EWR → PUJ", airAvg:"~$400–$500", deepRank:31, deepNote:"Party-focused Uvero Alto. 8 bars, 4 pools, 9.0/10 guest score. Xhale Club upgrade. Hyatt points.", blurb:"Adults-only party-forward resort in Uvero Alto — 8 bars including 5 poolside, 4 pools, nightclub. 9.0/10 guest score. Xhale Club upgrade gives premium ocean-view suites. World of Hyatt points. Higher sargassum risk Uvero Alto in October." , sargRisk:3, amexStatus:"NONE", amexNote:"World of Hyatt points — no Amex program"},
+  { rank:35, name:"W Punta Cana", rating:4.2, country:"Dominican Republic", cc:"c-dr", type:"Adults Only", tc:"t-adults", priceDisplay:"$2,032", priceSort:2032, visited:false, url:"https://www.marriott.com/en-us/hotels/pujwh-w-punta-cana/overview/", airRoute:"JFK/EWR → PUJ", airAvg:"~$400–$500", deepRank:32, deepNote:"Newest adults-only DR (June 2025). 340 rooms, 80m infinity pool, Uvero Alto. Marriott Bonvoy.", blurb:"Brand new adults-only opened June 2025 — newest property on the full list. 340 rooms in Uvero Alto, 80-meter infinity pool, signature W design-forward energy. Marriott Bonvoy points eligible. Too new for deep reviews. Uvero Alto moderate sargassum risk October." , sargRisk:3, amexStatus:"NONE", amexNote:"Marriott Bonvoy points — no Amex program"},
+  { rank:36, name:"Secrets Royal Beach Punta Cana", rating:4.1, country:"Dominican Republic", cc:"c-dr", type:"Adults Only", tc:"t-adults", priceDisplay:"$1,484", priceSort:1484, visited:false, url:"https://www.hyattinclusivecollection.com/en/resorts-hotels/secrets/dominican-republic/royal-beach-punta-cana/", airRoute:"JFK/EWR → PUJ", airAvg:"~$400–$500", deepRank:35, deepNote:"Bavaro Beach, casino, lazy river, Now Larimar sister access. Solid mid-tier Secrets.", blurb:"Adults-only on Bavaro Beach with 639 suites, 7 restaurants, 4 pools including lazy river, casino and nightclub. Sip Savor & See access to sister resorts Now Larimar and Now Garden adds dining variety. Solid mid-tier Secrets — below Cap Cana Secrets on food and prestige." , sargRisk:3, amexStatus:"NONE", amexNote:"World of Hyatt points — no Amex program"},
+  { rank:37, name:"Royalton CHIC Punta Cana", rating:3.9, country:"Dominican Republic", cc:"c-dr", type:"Adults Only", tc:"t-adults", priceDisplay:"$942", priceSort:942, visited:false, url:"https://www.royaltonresorts.com/resorts/chic-punta-cana-resort-spa", airRoute:"JFK/EWR → PUJ", airAvg:"~$400–$500", deepRank:39, deepNote:"Party-first adults-only Uvero Alto. 7 restaurants, casino. 7.4/10 guest score. Marriott Bonvoy.", blurb:"Adults-only Autograph Collection with strong social nightlife focus. Diamond Club upgrade gives butler service and swim-out access. 7 restaurants, casino, nightclub. Marriott Bonvoy eligible. Guest scores (7.4/10) trail Excellence properties at same Uvero Alto location." , sargRisk:3, amexStatus:"NONE", amexNote:"Marriott Bonvoy (Autograph Collection) — no Amex program"},
+  { rank:38, name:"Lopesan Costa Bavaro Adults Only", rating:4.1, country:"Dominican Republic", cc:"c-dr", type:"Adults Only", tc:"t-adults", priceDisplay:"$1,449", priceSort:1449, visited:false, url:"https://www.lopesan.com/en/hotels/dominican-republic/punta-cana/adults-only-club-lopesan-costa-bavaro/", airRoute:"JFK/EWR → PUJ", airAvg:"~$400–$500", deepRank:36, deepNote:"Underrated — 10 restaurants, 5 pools, free waterpark, 15 bars. 8.4/10 guest score. Bavaro.", blurb:"Underrated adults-only club within Lopesan Costa Bavaro complex. 10 restaurants, 5 pools, 15 bars, free waterpark access, golf adjacent. 215 suites with pillow menus. 8.4/10 guest score — above several better-known DR properties. Strong value for Bavaro." , sargRisk:3, amexStatus:"NONE", amexNote:"—"},
+  { rank:39, name:"Sunscape Curaçao", rating:3.7, country:"Curaçao", cc:"c-curacao", type:"Family", tc:"t-family", priceDisplay:"$1,374", priceSort:1374, visited:false, url:"https://www.hyattinclusivecollection.com/en/resorts-hotels/sunscape/curacao/curacao-resort-spa-casino/", airRoute:"JFK/EWR → CUR", airAvg:"~$500–$650", deepRank:42, deepNote:"Zero sargassum, UNESCO Willemstad walkable, casino. Cheapest on list. Not adults-only.", blurb:"Zero sargassum year-round, UNESCO Willemstad walkable, casino, rock climbing, bocce ball, kayaking all included. Cheapest on the list. Not formally adults-only." , sargRisk:1, amexStatus:"NONE", amexNote:"World of Hyatt points — no Amex program"},
+  { rank:40, name:"Secrets Tides Punta Cana", rating:3.9, country:"Dominican Republic", cc:"c-dr", type:"Adults Only", tc:"t-adults", priceDisplay:"$1,539", priceSort:1539, visited:false, url:"https://www.hyattinclusivecollection.com/en/resorts-hotels/secrets/dominican-republic/tides-punta-cana/", airRoute:"JFK/EWR → PUJ", airAvg:"~$400–$500", deepRank:43, deepNote:"Beautifully designed but Uvero Alto beach is weakest in PC. High sargassum risk. Low group energy.", blurb:"Beautifully designed village-layout property with 668 suites. Wristband-free. However, Uvero Alto beach is the weakest zone for beach quality in Punta Cana. Higher sargassum risk and lower group energy." , sargRisk:4, amexStatus:"NONE", amexNote:"World of Hyatt points — no Amex program"},
+  { rank:41, name:"Zoetry Villa Rolandi", rating:4.8, country:"Mexico", cc:"c-mx", type:"Mixed", tc:"t-mixed", priceDisplay:"No availability", priceSort:99998, visited:false, url:"https://www.hyattinclusivecollection.com/en/resorts-hotels/zoetry/mexico/villa-rolandi-isla-mujeres/", airRoute:"JFK/EWR → CUN", airAvg:"~$450–$550", deepRank:7, deepNote:"Private yacht transfer to Isla Mujeres. Award-winning Casa Rolandi restaurant. Only 35 oceanfront suites.", blurb:"The most exclusive Zoetry property — your stay begins with a private yacht transfer from Cancun to Isla Mujeres. Award-winning Casa Rolandi restaurant blends Mexican and Mediterranean cuisine into one of the best dining experiences of any all-inclusive. Only 35 suites, all oceanfront. Zero sargassum on the Isla Mujeres leeward coast. Same proximity to Cancun as Atelier Playa Mujeres. World of Hyatt points." , sargRisk:1, amexStatus:"THC", amexNote:"$100 experience credit + room upgrade on arrival"},
+  { rank:42, name:"Zoetry Marigot Bay St. Lucia", rating:4.5, country:"St. Lucia", cc:"c-st-lucia", type:"Mixed", tc:"t-mixed", priceDisplay:"$2,093", priceSort:2093, visited:false, url:"https://www.hyattinclusivecollection.com/en/resorts-hotels/zoetry/st-lucia/marigot-bay/", airRoute:"JFK/EWR → UVF", airAvg:"~$550–$700", deepRank:13, deepNote:"Iconic Marigot Bay marina. 4 restaurants, snorkeling + sunset cruise included. Boutique. ~5hrs from NY.", blurb:"Set on the iconic Marigot Bay marina in St. Lucia — one of the most photographed bays in the Caribbean. Boutique all-inclusive with 4 restaurants, swim-up and beach bars, snorkeling boat trip and sunset cruise included in rate. World of Hyatt points. Skews heavily couples but families allowed. ~5hrs from NY." , sargRisk:1, amexStatus:"THC", amexNote:"$100 experience credit + room upgrade on arrival"},
+  { rank:43, name:"Zoetry Curaçao Resort & Spa", rating:4.2, country:"Curaçao", cc:"c-curacao", type:"Mixed", tc:"t-mixed", priceDisplay:"$1,836", priceSort:1836, visited:false, url:"https://www.hyattinclusivecollection.com/en/resorts-hotels/zoetry/curacao/curacao-resort-spa/", airRoute:"JFK/EWR → CUR", airAvg:"~$500–$650", deepRank:29, deepNote:"Boutique all-suite near Willemstad. Zero sargassum. Ayurvedic spa. 2 restaurants. World of Hyatt points.", blurb:"Boutique all-suite Zoetry on Curaçao near the UNESCO colonial city of Willemstad. Zero sargassum year-round, Ayurvedic spa treatments, 2 restaurants, Blue Bay Golf Course nearby. World of Hyatt points. Intimate and wellness-focused — fewer amenities than the larger Sandals Royal Curacao on the same island." , sargRisk:1, amexStatus:"THC", amexNote:"$100 experience credit + room upgrade on arrival"}
+];
+
+resorts.sort((a,b) => a.rank - b.rank);
+
+function starHTML(r) {
+  let h = '<div class="stars">';
+  for (let i=1;i<=5;i++) {
+    if (r>=i) h+='<div class="star full"></div>';
+    else if (r>=i-0.5) h+='<div class="star half"></div>';
+    else h+='<div class="star empty"></div>';
+  }
+  return h+`<span class="star-num">${r.toFixed(1)}</span></div>`;
+}
+
+function priceCell(p) {
+  if (p === "No availability") return `<span class="price-na">No availability</span>`;
+  if (p === "—") return `<span class="price-empty">—</span>`;
+  return `<span class="price">${p}</span>`;
+}
+
+const tiers = { 1:"⭐ Tier 1 — Elite", 5:"💎 Tier 2 — Premium", 17:"💰 Tier 3 — Strong Value", 24:"🏖️ Tier 4 — Family & Value" };
+
+let currentSort = { col:'rank', dir:1 };
+let filtered = [...resorts];
+
+function amexCell(status, note) {
+  if (status === 'FHR') {
+    return '<div>'
+      + '<span style="display:inline-block;background:#1a3a2a;color:#5edd98;border:0.5px solid #2d6b4a;border-radius:4px;padding:2px 8px;font-size:11px;font-weight:600;white-space:nowrap">FHR ⭐</span>'
+      + '<div style="font-size:10px;color:#5edd98;margin-top:3px;line-height:1.3">' + (note || '') + '</div>'
+      + '</div>';
+  } else if (status === 'THC') {
+    return '<div>'
+      + '<span style="display:inline-block;background:#1e2d45;color:#6aadee;border:0.5px solid #2a4a78;border-radius:4px;padding:2px 8px;font-size:11px;font-weight:600;white-space:nowrap">THC 🔵</span>'
+      + '<div style="font-size:10px;color:#6aadee;margin-top:3px;line-height:1.3">' + (note || '') + '</div>'
+      + '</div>';
+  } else {
+    return '<span style="color:#444;font-size:11px">' + (note && note !== '—' ? '<span style="font-size:10px;color:#555">' + note + '</span>' : '—') + '</span>';
+  }
+}
+
+function sargCell(risk) {
+  var configs = {
+    1: { color: '#5edd98', bg: '#1a3a2a', border: '#2d6b4a', label: '1 — Minimal' },
+    2: { color: '#a8e07a', bg: '#1e2a10', border: '#3a5020', label: '2 — Low' },
+    3: { color: '#e4a84a', bg: '#2a2008', border: '#5a4010', label: '3 — Moderate' },
+    4: { color: '#ee8a5a', bg: '#2a1808', border: '#7a3a10', label: '4 — High' },
+    5: { color: '#ee6a5a', bg: '#2a1008', border: '#9a2010', label: '5 — Peak' },
+  };
+  var c = configs[risk] || configs[3];
+  return '<span style="display:inline-block;background:' + c.bg + ';color:' + c.color + ';border:0.5px solid ' + c.border + ';border-radius:4px;padding:2px 8px;font-size:11px;font-weight:500;white-space:nowrap">' + c.label + '</span>';
+}
+
+function deepRankCell(r) {
+  var colors = ['#f5c842','#c8c8c8','#cd7f32','#6aadee','#9a9aee','#5edd98','#e8a86a','#ee8a7a','#b08de8','#ee6aad'];
+  var bg = r.deepRank <= 3 ? ['#2a1f00','#1a1a1a','#1e1200'][r.deepRank-1] : 'var(--surface-1)';
+  var c = colors[Math.min(r.deepRank-1, colors.length-1)] || '#888';
+  var brd = r.deepRank <= 3 ? ('border:1.5px solid ' + c) : 'border:0.5px solid var(--border)';
+  var note = r.deepNote || '';
+  return '<div style="display:flex;align-items:center;gap:6px">'
+    + '<span style="display:inline-flex;align-items:center;justify-content:center;min-width:28px;height:28px;border-radius:50%;background:' + bg + ';color:' + c + ';font-size:12px;font-weight:700;flex-shrink:0;' + brd + '">' + r.deepRank + '</span>'
+    + '<span style="font-size:10px;color:var(--text-muted);line-height:1.3">' + note + '</span>'
+    + '</div>';
+}
+
+function renderTable(data) {
+  const tbody = document.getElementById("tbody");
+  tbody.innerHTML = "";
+  let lastTier = null;
+
+  data.forEach(r => {
+    if (currentSort.col === 'rank') {
+      const tk = Object.keys(tiers).map(Number).filter(k=>k<=r.rank).pop();
+      if (tk !== lastTier && tiers[tk]) {
+        const tr = document.createElement("tr");
+        tr.className = "tier-row";
+        tr.innerHTML = `<td colspan="12">${tiers[tk]}</td>`;
+        tbody.appendChild(tr);
+        lastTier = tk;
+      }
+    }
+    const tr = document.createElement("tr");
+    tr.innerHTML = `
+      <td class="num">${r.rank}</td>
+      <td><span class="resort-name">${r.name}</span>${r.visited?'<span class="visited">✓ Visited</span>':''}</td>
+      <td>${starHTML(r.rating)}</td>
+      <td><span class="country ${r.cc}">${r.country}</span></td>
+      <td><span class="type ${r.tc}">${r.type}</span></td>
+      <td>${priceCell(r.priceDisplay)}</td>
+      <td>
+        ${r.airAvg ? `<div style="font-size:12px;font-weight:500;color:#e8e8e8;white-space:nowrap">${r.airAvg}</div><div style="font-size:10px;color:#555;margin-top:1px">${r.airRoute}</div>` : '<span style="color:#444;font-size:11px">—</span>'}
+      </td>
+      <td>
+        ${r.deepRank ? deepRankCell(r) : '<span style="color:#444;font-size:11px">—</span>'}
+      </td>
+      <td>
+        <span style="font-size:11px;color:var(--text-secondary);line-height:1.5;display:block;max-width:300px">${r.blurb || '<span style="color:#444">—</span>'}</span>
+      </td>
+      <td>${sargCell(r.sargRisk || 3)}</td>
+      <td>${amexCell(r.amexStatus, r.amexNote)}</td>
+      <td>${r.url ? `<a href="${r.url}" target="_blank" style="color:#6aadee;font-size:11px;text-decoration:none;border:0.5px solid #2a4a78;padding:2px 7px;border-radius:4px;white-space:nowrap">Visit ↗</a>` : '<span style="color:#444;font-size:11px">—</span>'}</td>
+    `;
+    tbody.appendChild(tr);
+  });
+
+  document.getElementById("count").textContent = `Showing ${data.length} of ${resorts.length} resorts`;
+}
+
+function applyFilters() {
+  var co = document.getElementById("filterCountry").value;
+  var ty = document.getElementById("filterType").value;
+  var ra = parseFloat(document.getElementById("filterRating").value) || 0;
+  var av = document.getElementById("filterAvail").value;
+  var sarg = parseInt(document.getElementById("filterSarg").value) || 0;
+  var priceMinEl = document.getElementById("priceMin");
+  var priceMaxEl = document.getElementById("priceMax");
+  var priceMin = priceMinEl && priceMinEl.value ? parseInt(priceMinEl.value) : null;
+  var priceMax = priceMaxEl && priceMaxEl.value ? parseInt(priceMaxEl.value) : null;
+
+  filtered = resorts.filter(function(r) {
+    if (co !== "all" && r.country !== co) return false;
+    if (ty !== "all" && r.type !== ty) return false;
+    if (ra && r.rating < ra) return false;
+    if (av === "priced" && (r.priceDisplay === "—" || r.priceDisplay === "No availability")) return false;
+    if (av === "avail" && (r.priceDisplay !== "—")) return false;
+    if (priceMin !== null || priceMax !== null) {
+      var p = r.priceSort;
+      if (p >= 99990) return false;
+      if (priceMin !== null && p < priceMin) return false;
+      if (priceMax !== null && p > priceMax) return false;
+    }
+    if (sarg > 0 && (r.sargRisk || 3) > sarg) return false;
+    var amexF = document.getElementById("filterAmex").value;
+    if (amexF === "FHR" && r.amexStatus !== "FHR") return false;
+    if (amexF === "THC" && r.amexStatus !== "THC") return false;
+    if (amexF === "ANY" && r.amexStatus === "NONE") return false;
+    return true;
+  });
+  sortAndRender();
+}
+
+function sortBy(col) {
+  if (currentSort.col===col) currentSort.dir*=-1;
+  else { currentSort.col=col; currentSort.dir=1; }
+  sortAndRender();
+}
+
+function sortAndRender() {
+  var col = currentSort.col, dir = currentSort.dir;
+  var sorted = filtered.slice().sort(function(a, b) {
+    var av = a[col], bv = b[col];
+    // Treat undefined/null as 9999 for numeric sorts (pushes unranked to bottom)
+    if (col === 'deepRank') {
+      av = (av == null || av === undefined) ? 9999 : av;
+      bv = (bv == null || bv === undefined) ? 9999 : bv;
+      return dir * (av - bv);
+    }
+    if (typeof av === 'string' && typeof bv === 'string') return dir * av.localeCompare(bv);
+    if (av == null) av = 99999;
+    if (bv == null) bv = 99999;
+    return dir * (av - bv);
+  });
+  renderTable(sorted);
+}
+
+renderTable(resorts);
+</script>
+</div>
+<script>
+function switchPage(id, el) {
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.page-tab').forEach(t => t.classList.remove('active'));
+  document.getElementById('page-' + id).classList.add('active');
+  el.classList.add('active');
+}
+</script>
+</body>
+</html>
